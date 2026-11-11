@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InventoryMS</title>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <meta name="color-scheme" content="light dark">
+
+<!-- Runs immediately, before the page paints, so there's no flash of the wrong theme -->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('theme');
+      var dark = saved
+        ? saved === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    } catch (e) {
+      document.documentElement.dataset.theme = 'light';
+    }
+  })();
+</script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ========== Sidebar ========== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">InventoryMS</div>
+
+      <nav class="nav">
+        <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+        <a href="#" class="nav-link" data-page="products">Products</a>
+        <a href="#" class="nav-link" data-page="movements">Stock Movements</a>
+        <a href="#" class="nav-link" data-page="suppliers">Suppliers</a>
+        <a href="#" class="nav-link" data-page="sales">Sales</a>
+        <a href="#" class="nav-link" data-page="reports">Reports</a>
+      </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ========== Main area ========== -->
+    <div class="main">
+
+        <header class="topbar">
+
+          <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" x2="20" y1="6" y2="6"/>
+            <line x1="4" x2="20" y1="12" y2="12"/>
+            <line x1="4" x2="20" y1="18" y2="18"/>
+          </svg>
+         </button>
+
+            <div class="bell-wrapper">
+                <button class="bell-btn" id="bellBtn" aria-label="Low stock notifications">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+                <span class="bell-badge" id="bellBadge" hidden>0</span>
+            </button>
+            
+            <div class="bell-dropdown" id="bellDropdown">
+                <div class="dropdown-header">Low Stock Alerts</div>
+                <div id="bellList"></div>
+            </div>
+        </div>   
+
+        <button class="theme-btn" id="themeBtn" aria-label="Switch to dark mode" aria-pressed="false">        
+
+          <!-- Moon: shown in light mode -->
+          <svg class="icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+
+          <!-- Sun: shown in dark mode -->
+          <svg class="icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2"/><path d="M12 20v2"/>
+            <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+            <path d="M2 12h2"/><path d="M20 12h2"/>      
+            <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>      
+          </svg>
+        </button>
+
+      </header>
+
+      <main class="content">
+
+        <!-- Dashboard -->
+        <section id="dashboard" class="page active">
+          <h1>Dashboard</h1>
+          <p class="subtitle">Welcome back! Here's what's happening today.</p>
+
+          <!-- Stat cards -->
+          <div class="stat-grid">
+
+            <div class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon icon-purple">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m7.5 4.27 9 5.15"/>
+                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                    <path d="m3.3 7 8.7 5 8.7-5"/>
+                    <path d="M12 22V12"/>
+                  </svg>
+                </div>
+                <span class="trend trend-flat" id="dashProductsBadge">—</span>
+              </div>
+              <span class="stat-label">Total Products</span>
+              <strong class="stat-value" id="dashProducts">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon icon-green">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                    <path d="M12 18V6"/>
+                  </svg>
+                </div>
+                <span class="trend trend-flat" id="dashRevenueTrend">—</span>
+              </div>
+              <span class="stat-label">Monthly Revenue</span>
+              <strong class="stat-value" id="dashRevenue">$0.00</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon icon-blue">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="8" cy="21" r="1"/>
+                    <circle cx="19" cy="21" r="1"/>
+                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                  </svg>
+                </div>
+                <span class="trend trend-flat" id="dashSalesTrend">—</span>
+              </div>
+              <span class="stat-label">Sales This Month</span>
+              <strong class="stat-value" id="dashSales">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon icon-red">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+                    <path d="M12 9v4"/>
+                    <path d="M12 17h.01"/>
+                  </svg>
+                </div>
+                <span class="trend trend-flat" id="dashLowBadge">—</span>
+              </div>
+              <span class="stat-label">Low Stock Items</span>
+              <strong class="stat-value" id="dashLow">0</strong>
+            </div>
+
+          </div>
+
+          <!-- Activity + low stock -->
+          <div class="dashboard-grid">
+
+            <div class="activity-card">
+              <h2>Recent Activity</h2>
+              <div id="activityList"></div>
+            </div>
+
+            <div class="alert-card">
+
+              <div class="alert-card-header">
+                <h2>Low Stock Alert</h2>
+                <a href="#" class="link" id="viewAllLow">View All</a>
+              </div>
+              <div id="lowStockList"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Products -->
+        <section id="products" class="page">
+          <div class="page-header">
+            <div>
+              <h1>Products</h1>
+              <p class="subtitle">Manage your product catalog.</p>
+            </div>
+            <button class="btn btn-primary" id="addProductBtn">+ Add Product</button>
+          </div>
+
+          <div class="summary-cards">
+            <div class="summary-card">
+              <span class="summary-label">In Stock</span>
+              <strong class="summary-value" id="countIn">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Low Stock</span>
+              <strong class="summary-value" id="countLow">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Out of Stock</span>
+              <strong class="summary-value" id="countOut">0</strong>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input type="text" id="productSearch" placeholder="Search by name or SKU...">
+            <select id="categoryFilter">
+              <option value="all">All categories</option>
+            </select>
+            <select id="supplierFilter">
+              <option value="all">All suppliers</option>
+            </select>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th>Supplier</th>                  
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Reorder</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Stock Movements -->
+        <section id="movements" class="page">
+          <div class="page-header">
+            <div>
+              <h1>Stock Movements</h1>
+              <p class="subtitle">A history of every stock change.</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <select id="movementFilter">
+              <option value="all">All movements</option>
+              <option value="in">Stock In only</option>
+              <option value="out">Stock Out only</option>
+            </select>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Product</th>
+                  <th>Type</th>
+                  <th>Qty</th>
+                  <th>Change</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody id="movementTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Suppliers -->
+         <section id="suppliers" class="page">
+          <div class="page-header">
+            <div>
+              <h1>Suppliers</h1>
+              <p class="subtitle">Keep track of your suppliers.</p>
+            </div>
+            <button class="btn btn-primary" id="addSupplierBtn">+ Add Supplier</button>
+          </div>
+
+          <div class="toolbar">
+            <input type="text" id="supplierSearch" placeholder="Search by name, contact or email...">
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Products</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="supplierTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Sales -->
+        <section id="sales" class="page">
+          <div class="page-header">
+            <div>
+              <h1>Sales</h1>
+              <p class="subtitle">Record and review sales.</p>
+            </div>
+            <button class="btn btn-primary" id="addSaleBtn">+ Record Sale</button>
+          </div>
+
+          <div class="summary-cards">
+            <div class="summary-card">
+              <span class="summary-label">Revenue</span>
+              <strong class="summary-value" id="saleRevenue">$0.00</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Sales</span>
+              <strong class="summary-value" id="saleCount">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Units sold</span>
+              <strong class="summary-value" id="saleUnits">0</strong>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input type="text" id="saleSearch" placeholder="Search by product or customer...">
+            <input type="date" id="saleFrom" class="date-input" aria-label="From date">
+            <input type="date" id="saleTo" class="date-input" aria-label="To date">
+            <button class="btn btn-ghost" id="saleClearBtn">Clear</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Product</th>
+                  <th>Customer</th>
+                  <th>Qty</th>
+                  <th>Unit price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="saleTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Reports -->
+        <section id="reports" class="page">
+          <div class="page-header">
+            <div>
+              <h1>Reports</h1>
+              <p class="subtitle">Inventory and sales reports.</p>
+              <p class="print-only" id="reportPrintDate"></p>
+            </div>
+            <div class="header-actions no-print">
+              <button class="btn btn-ghost" id="exportInventoryBtn">Export Inventory CSV</button>
+              <button class="btn btn-ghost" id="exportSalesBtn">Export Sales CSV</button>
+              <button class="btn btn-primary" id="printReportBtn">Print</button>
+            </div>
+          </div>
+
+          <div class="summary-cards summary-cards-4">
+            <div class="summary-card">
+              <span class="summary-label">Total products</span>
+              <strong class="summary-value" id="reportProducts">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Total units in stock</span>
+              <strong class="summary-value" id="reportUnits">0</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Stock value</span>
+              <strong class="summary-value" id="reportValue">$0.00</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Low or out of stock</span>
+              <strong class="summary-value" id="reportAttention">0</strong>
+            </div>
+          </div>
+
+          <div class="report-grid">
+            <div class="report-card">
+              <h2>Stock value by category</h2>
+              <div id="categoryReport"></div>
+            </div>
+
+            <div class="report-card">
+              <div class="report-card-header">
+                <h2>Sales</h2>
+                <select id="salesPeriod" class="no-print">
+                  <option value="day">By day</option>
+                  <option value="month">By month</option>
+                </select>
+              </div>
+              <div id="salesTrend"></div>
+            </div>
+          </div>
+
+          <div class="report-card">
+            <h2>Top-selling products</h2>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Units sold</th>
+                    <th>Revenue</th>
+                    <th>Share</th>
+                  </tr>
+                </thead>
+                <tbody id="topSellersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+  <!-- ========== Product modal (Add / Edit) ========== -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <h2 id="modalTitle">Add Product</h2>
+
+      <form id="productForm" novalidate>
+        <input type="hidden" id="productId">
+
+        <label for="productName">Product name</label>
+        <input type="text" id="productName">
+
+        <label for="productSku">SKU</label>
+        <input type="text" id="productSku">
+
+        <label for="productCategory">Category</label>
+        <input type="text" id="productCategory" list="categoryList">
+        <datalist id="categoryList"></datalist>
+
+        <label for="productSupplier">Supplier</label>
+        <select id="productSupplier"></select>
+
+        <div class="form-row">
+          <div>
+            <label for="productPrice">Price ($)</label>
+            <input type="number" id="productPrice" min="0" step="0.01">
+          </div>
+          <div>
+            <label for="productStock">Stock</label>
+            <input type="number" id="productStock" min="0">
+          </div>
+          <div>
+            <label for="productReorder">Reorder level</label>
+            <input type="number" id="productReorder" min="0">
+          </div>
+        </div>
+
+        <p class="form-error" id="formError"></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== Stock adjustment modal ========== -->
+  <div class="modal-overlay" id="stockModal">
+    <div class="modal">
+      <h2>Adjust Stock</h2>
+      <p class="subtitle" id="stockProductInfo"></p>
+
+      <form id="stockForm" novalidate>
+        <input type="hidden" id="stockProductId">
+
+        <label for="stockType">Action</label>
+        <select id="stockType">
+          <option value="in">Stock In (add units)</option>
+          <option value="out">Stock Out (remove units)</option>
+        </select>
+
+        <label for="stockQty">Quantity</label>
+        <input type="number" id="stockQty" min="1">
+
+        <label for="stockReason">Reason</label>
+        <select id="stockReason">
+          <option>Restock from supplier</option>
+          <option>Customer return</option>
+          <option>Damaged</option>
+          <option>Lost or stolen</option>
+          <option>Inventory correction</option>
+          <option>Other</option>
+        </select>
+
+        <p class="form-error" id="stockError"></p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="stockCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="supplierModal">
+    <div class="modal">
+      <h2 id="supplierModalTitle">Add Supplier</h2>
+  
+      <form id="supplierForm" novalidate>
+        <input type="hidden" id="supplierId">
+
+        <label for="supplierName">Supplier name</label>
+        <input type="text" id="supplierName">
+
+        <label for="supplierContact">Contact person</label>
+        <input type="text" id="supplierContact">
+
+        <div class="form-row">
+          <div>
+            <label for="supplierEmail">Email</label>
+            <input type="email" id="supplierEmail">
+          </div>
+          <div>
+            <label for="supplierPhone">Phone</label>
+            <input type="text" id="supplierPhone">
+          </div>
+        </div>
+
+      <label for="supplierAddress">Address</label>
+      <input type="text" id="supplierAddress">
+
+      <p class="form-error" id="supplierError"></p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="supplierCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="saleModal">
+  <div class="modal">
+    <h2>Record Sale</h2>
+
+    <form id="saleForm" novalidate>
+      <label for="saleProduct">Product</label>
+      <select id="saleProduct"></select>
+
+      <div class="form-row">
+        <div>
+          <label for="saleQty">Quantity</label>
+          <input type="number" id="saleQty" min="1" value="1">
+        </div>
+        <div>
+          <label for="saleCustomer">Customer (optional)</label>
+          <input type="text" id="saleCustomer" placeholder="Walk-in customer">
+        </div>
+      </div>
+
+      <div class="sale-preview">
+        <div class="sale-preview-row">
+          <span class="text-muted">Unit price</span>
+          <span id="salePreviewPrice">—</span>
+        </div>
+        <div class="sale-preview-row">
+          <span class="text-muted">Available</span>
+          <span id="salePreviewStock">—</span>
+        </div>
+        <div class="sale-preview-row sale-preview-total">
+          <span>Total</span>
+          <strong id="salePreviewTotal">$0.00</strong>
+        </div>
+      </div>
+
+      <p class="form-error" id="saleError"></p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="saleCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Record Sale</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts go at the bottom so the HTML loads first.
+       Order matters: data first, app last. -->
+  <script src="js/data.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/stock.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/supplier.js"></script>
+  <script src="js/sales.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
